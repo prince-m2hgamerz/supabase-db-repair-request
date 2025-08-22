@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Supabase Real-time Viewer</title>
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    const supabaseUrl = 'https://svuwnrjlfyglgpctdarz.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN2dXducmpsZnlnbGdwY3RkYXJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU2ODYyMzQsImV4cCI6MjA3MTI2MjIzNH0.JwyaC91DuU5uDmbcry0e_9WIGf5AtPS_MzWRMmNglEM'; // safe to use client-side
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    let lastId = 0;
+
+    async function poll() {
+      const { data, error } = await supabase
+        .from('repair_requests')
+        .select('*')
+        .gt('id', lastId)
+        .order('id', { ascending: true });
+
+      if (data && data.length > 0) {
+        data.forEach(row => {
+          const table = document.getElementById('table-body');
+          const tr = table.insertRow();
+          tr.insertCell(0).innerText = row.id;
+          tr.insertCell(1).innerText = row.name; // example column
+        });
+        lastId = data[data.length - 1].id;
+      }
+
+      setTimeout(poll, 2000); // poll every 2 seconds
+    }
+
+    poll();
+  </script>
+</head>
+<body>
+  <h1>Repair Requests</h1>
+  <table border="1">
+    <thead>
+      <tr><th>ID</th><th>Name</th></tr>
+    </thead>
+    <tbody id="table-body"></tbody>
+  </table>
+</body>
+</html>
